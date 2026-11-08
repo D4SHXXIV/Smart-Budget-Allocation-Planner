@@ -1,0 +1,46 @@
+
+@startuml
+
+left to right direction
+
+actor "Pengelola Anggaran" as User
+
+rectangle "Smart Budget Allocation Planner" {
+
+    usecase "UC-01\nMengelola Alokasi Anggaran" as UC01
+
+    usecase "UC-02\nMengelola Rincian Sub-item" as UC02
+
+    usecase "UC-03\nMelihat Ringkasan Anggaran" as UC03
+
+    usecase "Memvalidasi Kategori\ndan Persentase" as UC04
+
+    usecase "Menghitung Nominal\nAlokasi Otomatis" as UC05
+
+    usecase "Menghitung Total\nSub-item" as UC06
+
+    usecase "Menampilkan Peringatan\nKelebihan Anggaran" as UC07
+
+    usecase "Menghitung Ringkasan\nAnggaran" as UC08
+}
+
+User --> UC01
+User --> UC02
+User --> UC03
+
+UC01 ..> UC04 : <<include>>
+UC01 ..> UC05 : <<include>>
+
+UC02 ..> UC06 : <<include>>
+
+UC07 ..> UC02 : <<extend>>
+
+UC03 ..> UC08 : <<include>>
+
+note right of UC07
+  Kondisi:
+  Total sub-item >
+  nominal alokasi kategori
+end note
+
+@enduml

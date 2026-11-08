@@ -1,0 +1,115 @@
+@startuml Sequencediagram_SBAP_SD02
+
+autonumber
+
+actor "Pengelola Anggaran" as U
+participant "View\n(HTML Template)" as V
+participant "BudgetComponent\n(TypeScript)" as C
+
+note over U,C
+  SD-02 mencakup UC-02, UC-06, dan UC-07.
+  items merupakan Nested FormArray di dalam categories.
+end note
+
+== A. Memilih Kategori ==
+
+U -> V: Memilih kategori
+V -> C: getSubItems(categoryIndex)
+activate C
+C -> C: Mengambil Nested FormArray items
+C --> V: Data sub-item kategori
+deactivate C
+V --> U: Menampilkan daftar rincian
+
+== B. Menambah Sub-item (UC-02) ==
+
+U -> V: Klik Tambah Sub-item
+V -> C: addSubItem(categoryIndex)
+activate C
+
+alt Kategori ditemukan
+    C -> C: createSubItem()
+    C -> C: getSubItems(categoryIndex)
+    C -> C: items.push(new FormGroup)
+    C --> V: Nested FormArray diperbarui
+    V --> U: Menampilkan baris sub-item baru
+else Kategori tidak ditemukan
+    C --> V: Penambahan ditolak
+    V --> U: Menampilkan pesan kesalahan
+end
+
+deactivate C
+
+== C. Mengisi dan Memvalidasi Sub-item ==
+
+loop Setiap sub-item
+    U -> V: Mengisi nama dan nominal
+    V -> C: Reactive Forms binding
+    activate C
+    C -> C: Memperbarui FormControl
+    C -> C: budgetForm.valueChanges emit
+    C -> C: validateSubItems(categoryIndex)
+
+    alt Input valid dan tidak duplikat
+        C --> V: Input valid
+    else Nama kosong atau duplikat
+        C --> V: Kesalahan nama sub-item
+    else Nominal kosong atau <= 0
+        C --> V: Kesalahan nominal
+    end
+    deactivate C
+
+    V --> U: Menampilkan status input
+end
+
+== D. Menghitung Total Sub-item (UC-06) ==
+
+C -> C: calculateSubTotal(categoryIndex)
+activate C
+C -> C: Menjumlahkan nominal seluruh items
+C --> V: Total sub-item kategori
+deactivate C
+V --> U: Menampilkan subtotal
+
+== E. Peringatan Kelebihan Anggaran (UC-07 Extend) ==
+
+C -> C: isOverAllocated(categoryIndex)
+activate C
+
+alt Total sub-item > nominal alokasi
+    note over U,C: Kondisi UC-07 terpenuhi
+    C --> V: Status kelebihan anggaran
+    V --> U: Menampilkan peringatan
+else Total sub-item <= nominal alokasi
+    C --> V: Status anggaran sesuai
+    V --> U: Menampilkan status normal
+end
+deactivate C
+
+== F. Menghapus Sub-item (UC-02) ==
+
+U -> V: Klik Hapus pada itemIndex
+V -> C: removeSubItem(categoryIndex, itemIndex)
+activate C
+
+alt Kedua indeks valid
+    C -> C: getSubItems(categoryIndex)
+    C -> C: items.removeAt(itemIndex)
+    C -> C: validateSubItems(categoryIndex)
+
+    note over C: UC-06: Menghitung ulang subtotal
+    C -> C: calculateSubTotal(categoryIndex)
+
+    note over C: UC-07: Memeriksa kondisi peringatan
+    C -> C: isOverAllocated(categoryIndex)
+
+    C --> V: Data terbaru Nested FormArray
+    V --> U: Menampilkan rincian terbaru
+else Indeks tidak valid
+    C --> V: Penghapusan ditolak
+    V --> U: Menampilkan pesan kesalahan
+end
+
+deactivate C
+
+@enduml

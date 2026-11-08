@@ -1,0 +1,118 @@
+@startuml Sequencediagram_SBAP_SD03
+
+autonumber
+
+actor "Pengelola Anggaran" as U
+participant "View\n(HTML Template)" as V
+participant "BudgetComponent\n(TypeScript)" as C
+
+note over U,C
+  SD-03 mencakup UC-03 dan UC-08.
+  Data dibaca dari budgetForm dan Nested FormArray.
+end note
+
+== A. Membuka Ringkasan Anggaran (UC-03) ==
+
+U -> V: Klik Lihat Ringkasan
+V -> C: showSummary()
+activate C
+C -> C: showSummaryPanel = true
+C --> V: Panel ringkasan aktif
+deactivate C
+V -> V: Menampilkan bagian ringkasan
+
+== B. Menghitung Ringkasan (UC-08 Include) ==
+
+note over V,C: UC-08 tetap diproses meskipun categories kosong.
+
+V -> C: totalBudget
+activate C
+C --> V: Nilai total anggaran
+deactivate C
+
+V -> C: totalPercentage
+activate C
+C -> C: Menjumlahkan persentase kategori
+C --> V: Total persentase
+deactivate C
+
+V -> C: totalAllocated
+activate C
+C -> C: Menjumlahkan nominal alokasi kategori
+C --> V: Total nominal alokasi
+deactivate C
+
+V -> C: totalSubItemAmount
+activate C
+C -> C: Menghitung subtotal semua kategori
+C --> V: Total nominal sub-item
+deactivate C
+
+V -> C: unallocatedBudget
+activate C
+C -> C: Menghitung sisa anggaran
+C --> V: Dana belum dialokasikan
+deactivate C
+
+V -> C: remainingDetailBudget
+activate C
+C -> C: Menghitung alokasi belum dirinci
+C --> V: Sisa alokasi belum dirinci
+deactivate C
+
+V -> C: hasOverAllocatedCategory
+activate C
+C --> V: Status kategori kelebihan anggaran
+deactivate C
+
+V -> C: isBudgetValid
+activate C
+C -> C: Mengevaluasi seluruh aturan validasi
+C --> V: Status validitas anggaran
+deactivate C
+
+V -> C: budgetStatus
+activate C
+C --> V: Keterangan status anggaran
+deactivate C
+
+== C. Menentukan Template Tampilan ==
+
+V -> C: hasCategories
+activate C
+C -> C: Memeriksa categories.length
+C --> V: Nilai boolean
+deactivate C
+
+alt Kategori belum tersedia
+    V -> V: *ngIf menampilkan ng-template emptyState
+    V --> U: Menampilkan pesan belum ada data
+else Kategori tersedia
+    V -> V: *ngIf menampilkan ng-template populatedState
+    V --> U: Menampilkan ringkasan anggaran
+end
+
+== D. Memperbarui Ringkasan Real-time ==
+
+U -> V: Mengubah input anggaran / kategori / sub-item
+V -> C: Reactive Forms binding
+activate C
+C -> C: FormControl diperbarui
+C -> C: budgetForm.valueChanges emit
+
+C -> C: validateCategories()
+C -> C: validateSubItems(categoryIndex)
+deactivate C
+
+note over V,C: Angular change detection mengevaluasi kembali Getter.
+
+V -> C: Membaca kembali getter ringkasan
+activate C
+C -> C: Menghitung nilai terbaru
+C --> V: Mengembalikan ringkasan dan status terbaru
+deactivate C
+V --> U: Memperbarui tampilan ringkasan
+
+note over U,C: Tidak ada komunikasi dengan Backend atau Database.
+
+@enduml

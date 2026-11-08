@@ -1,0 +1,97 @@
+<div class="sub-items-wrapper">
+  <div class="sub-items-header">
+    <div class="sub-items-title-group">
+      <span class="sub-items-icon">📝</span>
+      <span class="sub-items-title">Rincian Sub-item (Nested FormArray)</span>
+      <span class="sub-items-count">{{ items ? items.length : 0 }} item</span>
+    </div>
+    <button type="button" class="btn-sub-add" (click)="onAdd()">
+      <span>+</span> Tambah Sub-item
+    </button>
+  </div>
+
+  <div *ngIf="items && items.length > 0; else emptySubItems" class="sub-items-table">
+    <div class="table-header-row">
+      <span class="col-num">#</span>
+      <span class="col-name">Nama Pengeluaran</span>
+      <span class="col-amount">Nominal (Rp)</span>
+      <span class="col-action"></span>
+    </div>
+
+    <div
+      *ngFor="let item of items.controls; let i = index; let first = first; let last = last; trackBy: trackBySubItem"
+      [formGroup]="asFormGroup(item)"
+      class="sub-item-row"
+    >
+      <div class="col-num">
+        <span class="index-pill">{{ i + 1 }}</span>
+      </div>
+
+      <div class="col-name">
+        <input
+          type="text"
+          formControlName="name"
+          placeholder="Contoh: Buku, Uang Kuliah..."
+          class="snow-input"
+          [class.input-invalid]="item.get('name')?.invalid && (item.get('name')?.touched || item.get('name')?.dirty)"
+        />
+        <div *ngIf="item.get('name')?.hasError('required') && item.get('name')?.touched" class="field-error">
+          Nama sub-item wajib diisi.
+        </div>
+        <div *ngIf="item.get('name')?.hasError('duplicate') && item.get('name')?.touched" class="field-error">
+          Nama duplikat dalam kategori ini.
+        </div>
+      </div>
+
+      <div class="col-amount">
+        <div class="input-with-prefix">
+          <span class="prefix">Rp</span>
+          <input
+            type="number"
+            formControlName="amount"
+            placeholder="0"
+            min="1"
+            class="snow-input text-right"
+            [class.input-invalid]="item.get('amount')?.invalid && (item.get('amount')?.touched || item.get('amount')?.dirty)"
+          />
+        </div>
+        <div *ngIf="item.get('amount')?.hasError('required') && item.get('amount')?.touched" class="field-error">
+          Wajib diisi.
+        </div>
+        <div *ngIf="item.get('amount')?.hasError('min') && item.get('amount')?.touched" class="field-error">
+          Harus > 0.
+        </div>
+      </div>
+
+      <div class="col-action">
+        <button
+          type="button"
+          class="btn-row-delete"
+          (click)="onRemove(i)"
+          title="Hapus sub-item ini"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #emptySubItems>
+    <div class="sub-items-empty">
+      <span>Belum ada rincian sub-item. Klik <strong>+ Tambah Sub-item</strong> untuk mendetailkan pengeluaran.</span>
+    </div>
+  </ng-template>
+
+  <!-- Subtotal & Over-allocation Warning -->
+  <div class="sub-items-footer">
+    <div class="subtotal-badge">
+      <span class="subtotal-label">Subtotal Kategori:</span>
+      <span class="subtotal-value">Rp{{ subTotal | number:'1.0-0' }}</span>
+    </div>
+
+    <div *ngIf="isOverAllocated" class="over-allocated-warning">
+      <span class="warn-icon">⚠️</span>
+      <span><strong>Peringatan:</strong> Total sub-item melebihi nominal alokasi kategori ini!</span>
+    </div>
+  </div>
+</div>

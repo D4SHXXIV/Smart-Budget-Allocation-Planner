@@ -1,0 +1,109 @@
+@startuml Sequencediagram_SBAP_SD01
+
+autonumber
+
+actor "Pengelola Anggaran" as U
+participant "View\n(HTML Template)" as V
+participant "BudgetComponent\n(TypeScript)" as C
+
+note over U,C
+  SD-01 mencakup UC-01, UC-04, dan UC-05.
+  Semua data diproses di memori, tanpa Backend atau Database.
+end note
+
+== A. Inisialisasi Form ==
+
+U -> V: Membuka aplikasi
+V -> C: ngOnInit()
+activate C
+
+C -> C: createBudgetForm()
+C -> C: Membuat FormGroup budgetForm
+C -> C: Membuat FormArray categories
+C -> C: Mengaktifkan pengamatan valueChanges
+
+C --> V: Form siap digunakan
+deactivate C
+
+V --> U: Menampilkan halaman alokasi
+
+== B. Memasukkan Total Anggaran ==
+
+U -> V: Mengisi totalBudget
+V -> C: Reactive Forms binding
+activate C
+C -> C: Memperbarui FormControl totalBudget
+C -> C: budgetForm.valueChanges emit
+C -> C: Memeriksa validasi input anggaran
+C --> V: Status input terbaru
+deactivate C
+V --> U: Menampilkan nilai anggaran
+
+== C. Menambah Kategori (UC-01) ==
+
+U -> V: Klik Tambah Kategori
+V -> C: addCategory()
+activate C
+
+alt Jumlah kategori kurang dari 10
+    C -> C: createCategory()
+    C -> C: categories.push(new FormGroup)
+    note over C: UC-04: Memvalidasi data kategori
+    C -> C: validateCategories()
+    note over C: UC-05: Menghitung nominal alokasi
+    C -> C: calculateCategoryAmount(index)
+    C --> V: FormArray diperbarui
+    V --> U: Menampilkan baris kategori baru
+else Jumlah kategori mencapai 10
+    C --> V: Penambahan ditolak
+    V --> U: Menampilkan batas maksimal kategori
+end
+
+deactivate C
+
+== D. Mengisi dan Mengubah Kategori ==
+
+loop Setiap kategori
+    U -> V: Mengisi nama dan persentase
+    V -> C: Reactive Forms binding
+    activate C
+    C -> C: Memperbarui FormControl
+    C -> C: budgetForm.valueChanges emit
+
+    note over C: UC-04: Validasi lintas kategori
+    C -> C: validateCategories()
+    C -> C: Memeriksa nama duplikat
+    C -> C: Menghitung totalPercentage
+
+    note over C: UC-05: Kalkulasi nominal kategori
+    C -> C: calculateCategoryAmount(index)
+
+    C --> V: Status validasi dan nominal
+    deactivate C
+    V --> U: Menampilkan hasil terbaru
+end
+
+== E. Menghapus Kategori (UC-01) ==
+
+U -> V: Klik Hapus pada kategori index
+V -> C: removeCategory(index)
+activate C
+
+alt Index valid dan jumlah kategori > 2
+    C -> C: categories.removeAt(index)
+    note over C: UC-04: Validasi ulang seluruh kategori
+    C -> C: validateCategories()
+    note over C: UC-05: Hitung ulang nominal alokasi
+    loop Setiap kategori yang tersisa
+        C -> C: calculateCategoryAmount(index)
+    end
+    C --> V: Data terbaru dari FormArray
+    V --> U: Menampilkan daftar kategori terbaru
+else Index tidak valid atau jumlah kategori <= 2
+    C --> V: Penghapusan ditolak
+    V --> U: Menampilkan pesan batas minimum
+end
+
+deactivate C
+
+@enduml

@@ -1,0 +1,104 @@
+<div class="snow-form-container" [formGroup]="budgetForm">
+  <!-- SECTION 1: Total Anggaran -->
+  <div class="snow-panel" id="section-basis">
+    <div class="panel-header">
+      <div class="panel-title-group">
+        <span class="panel-icon">💰</span>
+        <div>
+          <h2 class="panel-title">1. Total Anggaran Basis</h2>
+          <p class="panel-subtitle">Tentukan jumlah dana keseluruhan yang akan dialokasikan.</p>
+        </div>
+      </div>
+      <span class="status-pill">In-Memory Active</span>
+    </div>
+
+    <div class="total-budget-row">
+      <div class="budget-input-wrapper">
+        <span class="currency-tag">IDR (Rp)</span>
+        <input
+          id="totalBudget"
+          type="number"
+          formControlName="totalBudget"
+          placeholder="Contoh: 10000000"
+          min="1"
+          class="budget-main-input"
+          [class.input-invalid]="budgetForm.get('totalBudget')?.invalid && (budgetForm.get('totalBudget')?.touched || budgetForm.get('totalBudget')?.dirty)"
+        />
+      </div>
+      <div *ngIf="budgetForm.get('totalBudget')?.hasError('required') && budgetForm.get('totalBudget')?.touched" class="field-error">
+        Total anggaran wajib diisi.
+      </div>
+      <div *ngIf="budgetForm.get('totalBudget')?.hasError('min') && budgetForm.get('totalBudget')?.touched" class="field-error">
+        Total anggaran harus bernilai lebih dari 0.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Kategori Anggaran (FormArray) -->
+  <div class="snow-panel" id="section-categories">
+    <div class="panel-header">
+      <div class="panel-title-group">
+        <span class="panel-icon">📊</span>
+        <div>
+          <h2 class="panel-title">2. Distribusi Kategori Anggaran</h2>
+          <p class="panel-subtitle">
+            Alokasikan persentase per kategori. Batasan: 2 – 10 kategori, total wajib 100%.
+          </p>
+        </div>
+      </div>
+
+      <!-- Add Category Button (Snow UI Black Pill Button) -->
+      <button
+        type="button"
+        class="snow-btn-primary"
+        [disabled]="categories && categories.length >= 10"
+        (click)="onAddCategory()"
+      >
+        <span class="btn-plus">+</span>
+        <span>Tambah Kategori ({{ categories ? categories.length : 0 }}/10)</span>
+      </button>
+    </div>
+
+    <!-- Cross-Item Validation Alerts -->
+    <div class="cross-validation-alerts" *ngIf="categories">
+      <div *ngIf="categories.hasError('duplicateCategory')" class="alert-pill alert-danger">
+        <span class="alert-icon">⚠️</span>
+        <span><strong>Validasi Duplikasi:</strong> Terdapat nama kategori yang sama! Setiap nama kategori harus unik.</span>
+      </div>
+
+      <div *ngIf="categories.hasError('invalidPercentageTotal')" class="alert-pill alert-warning">
+        <span class="alert-icon">⚡</span>
+        <span><strong>Validasi Persentase:</strong> Akumulasi persentase saat ini <strong>{{ categories.getError('invalidPercentageTotal')?.actual }}%</strong>. Wajib tepat <strong>100%</strong>.</span>
+      </div>
+
+      <div *ngIf="categories.hasError('minCategories')" class="alert-pill alert-danger">
+        <span class="alert-icon">ℹ️</span>
+        <span><strong>Batas Minimum:</strong> Diperlukan minimal 2 kategori anggaran.</span>
+      </div>
+    </div>
+
+    <!-- Category Loop (Advanced *ngFor with index, first, last, trackBy) -->
+    <div class="categories-list" *ngIf="categories && categories.length > 0">
+      <div
+        *ngFor="let cat of categories.controls; let i = index; let first = first; let last = last; trackBy: trackByCategory"
+        class="category-item-wrapper"
+      >
+        <app-category-item
+          [categoryGroup]="asFormGroup(cat)"
+          [categoryIndex]="i"
+          [categoryCount]="categories.length"
+          [categoryAmount]="getCategoryAmount(i)"
+          [subTotal]="getSubTotal(i)"
+          [isOverAllocated]="isOverAllocated(i)"
+          [isFirst]="first"
+          [isLast]="last"
+          (removeCategoryRequested)="onRemoveCategory($event)"
+          (moveUpRequested)="onMoveUp($event)"
+          (moveDownRequested)="onMoveDown($event)"
+          (addSubItemRequested)="onAddSubItem($event)"
+          (removeSubItemRequested)="onRemoveSubItem($event)"
+        ></app-category-item>
+      </div>
+    </div>
+  </div>
+</div>

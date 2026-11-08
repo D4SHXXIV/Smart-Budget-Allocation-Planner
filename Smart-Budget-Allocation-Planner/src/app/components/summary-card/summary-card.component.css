@@ -1,0 +1,97 @@
+.snow-metric-card {
+  padding: 24px;
+  border-radius: 20px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 120px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.snow-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.trend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.trend-positive {
+  color: #10B981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.trend-negative {
+  color: #EF4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.trend-arrow {
+  font-size: 11px;
+}
+
+.card-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Figma Dashboard UI Kit Pastel Variations */
+.card-lavender {
+  background-color: var(--pastel-lavender) !important;
+  border-color: transparent !important;
+}
+
+.card-blue {
+  background-color: var(--pastel-blue) !important;
+  border-color: transparent !important;
+}
+
+.card-mint,
+.card-success {
+  background-color: var(--pastel-mint) !important;
+  border-color: transparent !important;
+}
+
+.card-peach,
+.card-warning {
+  background-color: var(--pastel-peach) !important;
+  border-color: transparent !important;
+}
+
+.card-danger {
+  background-color: var(--pastel-red) !important;
+  border-color: transparent !important;
+}

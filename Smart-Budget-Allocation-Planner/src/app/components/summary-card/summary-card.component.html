@@ -1,0 +1,15 @@
+<div class="snow-metric-card" [ngClass]="'card-' + variant">
+  <div class="card-header-row">
+    <span class="card-title">{{ title }}</span>
+    <span *ngIf="trend" class="trend-badge" [class.trend-positive]="isPositive" [class.trend-negative]="!isPositive">
+      {{ trend }}
+      <span class="trend-arrow">{{ isPositive ? '↗' : '↘' }}</span>
+    </span>
+  </div>
+
+  <div class="card-value">{{ value }}</div>
+
+  <div *ngIf="subtitle" class="card-subtitle">
+    {{ subtitle }}
+  </div>
+</div>

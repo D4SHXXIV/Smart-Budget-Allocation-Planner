@@ -1,0 +1,173 @@
+<div class="snow-app-layout">
+  <!-- Left Sidebar (Snow / ByeWind Modern Sidebar - Fixed Sticky) -->
+  <aside class="snow-sidebar">
+    <div class="sidebar-top">
+      <!-- User / Workspace Profile -->
+      <div class="user-profile">
+        <div class="avatar-ring">
+          <span class="avatar-text">SB</span>
+        </div>
+        <div class="user-meta">
+          <span class="user-name">Smart Budget</span>
+          <span class="user-role">ByeWind Dashboard</span>
+        </div>
+      </div>
+
+      <!-- Navigation Section -->
+      <div class="nav-section">
+        <span class="section-label">Menu</span>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <button
+              type="button"
+              class="nav-link"
+              [class.active]="activeNavTab === 'overview'"
+              (click)="navigateTo('overview')"
+              title="Lompat ke Metrik Overview"
+            >
+              <span class="nav-icon">📊</span>
+              <span class="nav-text">Overview</span>
+              <span class="nav-indicator" *ngIf="activeNavTab === 'overview'"></span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              type="button"
+              class="nav-link"
+              [class.active]="activeNavTab === 'alokasi'"
+              (click)="navigateTo('alokasi')"
+              title="Lompat ke Form Distribusi Kategori"
+            >
+              <span class="nav-icon">🎯</span>
+              <span class="nav-text">Alokasi Anggaran</span>
+              <span class="badge-count">{{ categories ? categories.length : 0 }}</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              type="button"
+              class="nav-link"
+              [class.active]="activeNavTab === 'rincian'"
+              (click)="navigateTo('rincian')"
+              title="Lompat ke Tabel Rincian Sub-item"
+            >
+              <span class="nav-icon">📁</span>
+              <span class="nav-text">Rincian Sub-item</span>
+              <span class="badge-count">{{ totalSubItemCount }}</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              type="button"
+              class="nav-link"
+              [class.active]="activeNavTab === 'ringkasan'"
+              (click)="navigateTo('ringkasan')"
+              title="Lompat ke Panel Ringkasan & Monitoring"
+            >
+              <span class="nav-icon">📈</span>
+              <span class="nav-text">Ringkasan</span>
+              <span class="status-dot" [class.dot-green]="isBudgetValid" [class.dot-amber]="!isBudgetValid"></span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sidebar Bottom Status Footer -->
+    <div class="sidebar-footer">
+      <div class="footer-card">
+        <div class="footer-card-header">
+          <span class="engine-indicator">●</span>
+          <span class="engine-label">In-Memory Engine</span>
+        </div>
+        <p class="footer-card-desc">Single source of truth tanpa database eksternal.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Layout -->
+  <div class="snow-main-layout">
+    <!-- Top Sticky Header -->
+    <app-budget-header [currentSection]="currentBreadcrumbSection"></app-budget-header>
+
+    <!-- Main Scrollable Body -->
+    <div class="snow-scroll-body">
+      <!-- Section: Top Overview Metric Cards (Lavender, Blue, Mint, Peach) -->
+      <section id="section-overview" class="overview-metrics-row">
+        <app-summary-card
+          title="Total Anggaran Basis"
+          [value]="'Rp' + (totalBudget | number:'1.0-0')"
+          subtitle="Basis alokasi dana utama"
+          variant="lavender"
+          trend="Dana Utama"
+          [isPositive]="true"
+        ></app-summary-card>
+
+        <app-summary-card
+          title="Akumulasi Persentase"
+          [value]="totalPercentage + '%'"
+          subtitle="Kepatuhan total alokasi 100%"
+          [variant]="totalPercentage === 100 ? 'blue' : (totalPercentage > 100 ? 'danger' : 'warning')"
+          [trend]="totalPercentage === 100 ? '100% Sempurna' : (totalPercentage > 100 ? 'Melebihi' : 'Belum 100%')"
+          [isPositive]="totalPercentage === 100"
+        ></app-summary-card>
+
+        <app-summary-card
+          title="Total Dana Teralokasi"
+          [value]="'Rp' + (totalAllocated | number:'1.0-0')"
+          subtitle="Kalkulasi otomatis per kategori"
+          variant="mint"
+          trend="Real-time"
+          [isPositive]="true"
+        ></app-summary-card>
+
+        <app-summary-card
+          title="Sisa Dana Belum Dialokasikan"
+          [value]="'Rp' + (unallocatedBudget | number:'1.0-0')"
+          subtitle="Total anggaran - total alokasi"
+          [variant]="unallocatedBudget === 0 ? 'mint' : 'peach'"
+          [trend]="unallocatedBudget === 0 ? 'Seimbang' : 'Perlu Alokasi'"
+          [isPositive]="unallocatedBudget === 0"
+        ></app-summary-card>
+      </section>
+
+      <!-- Section: Two-Column Workspace Grid -->
+      <div class="snow-workspace-grid">
+        <!-- Left Column: Form & Category Configuration -->
+        <div id="section-alokasi" class="workspace-col-form">
+          <app-budget-form
+            [budgetForm]="budgetForm"
+            [categories]="categories"
+            [totalBudget]="totalBudget"
+            [getCategoryAmountFn]="getCategoryAmountFn"
+            [getSubTotalFn]="getSubTotalFn"
+            [getIsOverAllocatedFn]="getIsOverAllocatedFn"
+            (addCategoryRequested)="addCategory()"
+            (removeCategoryRequested)="removeCategory($event)"
+            (moveCategoryUpRequested)="moveCategoryUp($event)"
+            (moveCategoryDownRequested)="moveCategoryDown($event)"
+            (addSubItemRequested)="addSubItem($event)"
+            (removeSubItemRequested)="removeSubItem($event.categoryIndex, $event.itemIndex)"
+          ></app-budget-form>
+        </div>
+
+        <!-- Right Column: Live Summary & Monitoring Analysis -->
+        <div id="section-ringkasan" class="workspace-col-summary">
+          <app-budget-summary
+            [totalBudget]="totalBudget"
+            [totalPercentage]="totalPercentage"
+            [totalAllocated]="totalAllocated"
+            [totalSubItemAmount]="totalSubItemAmount"
+            [unallocatedBudget]="unallocatedBudget"
+            [remainingDetailBudget]="remainingDetailBudget"
+            [hasCategories]="hasCategories"
+            [isBudgetValid]="isBudgetValid"
+            [budgetStatus]="budgetStatus"
+            [hasOverAllocatedCategory]="hasOverAllocatedCategory"
+            [showSummaryPanel]="showSummaryPanel"
+          ></app-budget-summary>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

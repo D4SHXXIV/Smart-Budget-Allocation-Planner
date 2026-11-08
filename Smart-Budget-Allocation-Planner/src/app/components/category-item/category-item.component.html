@@ -1,0 +1,107 @@
+<div class="snow-category-card" [formGroup]="categoryGroup">
+  <!-- Card Header -->
+  <div class="category-top-bar">
+    <div class="category-meta">
+      <span class="category-tag">Kategori #{{ categoryIndex + 1 }}</span>
+      <div class="reorder-group">
+        <button
+          type="button"
+          class="reorder-btn"
+          [disabled]="isFirst"
+          (click)="onMoveUp()"
+          title="Pindah ke Atas"
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          class="reorder-btn"
+          [disabled]="isLast"
+          (click)="onMoveDown()"
+          title="Pindah ke Bawah"
+        >
+          ▼
+        </button>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="btn-delete-category"
+      [disabled]="categoryCount <= 2"
+      (click)="onRemoveCategory()"
+      [title]="categoryCount <= 2 ? 'Minimal harus 2 kategori' : 'Hapus Kategori ini'"
+    >
+      <span>Hapus</span>
+    </button>
+  </div>
+
+  <!-- Primary Inputs: Name, Percentage, and Auto Allocation -->
+  <div class="category-fields-grid">
+    <div class="field-col flex-grow">
+      <label [for]="'cat-name-' + categoryIndex" class="field-label">
+        Nama Kategori <span class="req">*</span>
+      </label>
+      <input
+        [id]="'cat-name-' + categoryIndex"
+        type="text"
+        formControlName="name"
+        placeholder="Contoh: Pendidikan, Operasional..."
+        class="snow-field-input"
+        [class.input-invalid]="categoryGroup.get('name')?.invalid && (categoryGroup.get('name')?.touched || categoryGroup.get('name')?.dirty)"
+      />
+      <div *ngIf="categoryGroup.get('name')?.hasError('required') && categoryGroup.get('name')?.touched" class="field-error">
+        Nama kategori wajib diisi.
+      </div>
+      <div *ngIf="categoryGroup.get('name')?.hasError('duplicate') && categoryGroup.get('name')?.touched" class="field-error">
+        Nama duplikat (sudah digunakan).
+      </div>
+    </div>
+
+    <div class="field-col width-pct">
+      <label [for]="'cat-pct-' + categoryIndex" class="field-label">
+        Alokasi (%) <span class="req">*</span>
+      </label>
+      <div class="pct-input-wrap">
+        <input
+          [id]="'cat-pct-' + categoryIndex"
+          type="number"
+          formControlName="percentage"
+          placeholder="0"
+          min="1"
+          max="100"
+          class="snow-field-input text-center"
+          [class.input-invalid]="categoryGroup.get('percentage')?.invalid && (categoryGroup.get('percentage')?.touched || categoryGroup.get('percentage')?.dirty)"
+        />
+        <span class="pct-suffix">%</span>
+      </div>
+      <div *ngIf="categoryGroup.get('percentage')?.hasError('required') && categoryGroup.get('percentage')?.touched" class="field-error">
+        Wajib diisi.
+      </div>
+      <div *ngIf="categoryGroup.get('percentage')?.hasError('min') && categoryGroup.get('percentage')?.touched" class="field-error">
+        Min 1%.
+      </div>
+      <div *ngIf="categoryGroup.get('percentage')?.hasError('max') && categoryGroup.get('percentage')?.touched" class="field-error">
+        Maks 100%.
+      </div>
+    </div>
+
+    <div class="field-col width-nominal">
+      <label class="field-label">Nominal Alokasi</label>
+      <div class="nominal-display-box">
+        <span class="nominal-curr">Rp</span>
+        <span class="nominal-num">{{ categoryAmount | number:'1.0-0' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sub-items Nested Component (Nested FormArray) -->
+  <app-sub-item-form
+    [items]="items"
+    [categoryIndex]="categoryIndex"
+    [subTotal]="subTotal"
+    [isOverAllocated]="isOverAllocated"
+    (addRequested)="onAddSubItem($event)"
+    (removeRequested)="onRemoveSubItem($event)"
+  ></app-sub-item-form>
+</div>

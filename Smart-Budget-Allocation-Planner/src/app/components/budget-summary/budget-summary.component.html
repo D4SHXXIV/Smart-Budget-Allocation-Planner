@@ -1,0 +1,162 @@
+<div class="snow-summary-container" *ngIf="showSummaryPanel">
+  <!-- Panel Header -->
+  <div class="snow-panel-header">
+    <div class="header-title-group">
+      <span class="header-icon">📈</span>
+      <div>
+        <h3 class="header-title">3. Ringkasan & Monitoring Anggaran</h3>
+        <p class="header-subtitle">Analisis real-time distribusi dana dan validasi kepatuhan alokasi.</p>
+      </div>
+    </div>
+
+    <span
+      class="validity-badge"
+      [class.validity-valid]="isBudgetValid"
+      [class.validity-invalid]="!isBudgetValid"
+    >
+      <span class="badge-dot"></span>
+      {{ isBudgetValid ? 'Status: VALID (100%)' : 'Status: BELUM VALID' }}
+    </span>
+  </div>
+
+  <!-- Status Alert Component (Validation Alert Pill) -->
+  <div class="alert-section">
+    <app-validation-alert
+      [status]="alertStatus"
+      [message]="budgetStatus"
+    ></app-validation-alert>
+  </div>
+
+  <!-- Explicit Template Branching via ng-template #then / #else -->
+  <ng-container *ngIf="hasCategories; then populatedState; else emptyState"></ng-container>
+
+  <!-- Populated State: Saat kategori sudah diisi -->
+  <ng-template #populatedState>
+    <div class="populated-content">
+      <!-- 2x3 Metrics Grid -->
+      <div class="metrics-grid">
+        <app-summary-card
+          title="Total Anggaran Basis"
+          [value]="'Rp' + (totalBudget | number:'1.0-0')"
+          subtitle="Dana utama awal (100%)"
+          variant="lavender"
+          trend="In-Memory"
+          [isPositive]="true"
+        ></app-summary-card>
+
+        <app-summary-card
+          title="Akumulasi Persentase"
+          [value]="totalPercentage + '%'"
+          subtitle="Target alokasi wajib tepat 100%"
+          [variant]="totalPercentage === 100 ? 'blue' : (totalPercentage > 100 ? 'danger' : 'warning')"
+          [trend]="totalPercentage === 100 ? 'Tepat' : (totalPercentage > 100 ? 'Lebih' : 'Kurang')"
+          [isPositive]="totalPercentage === 100"
+        ></app-summary-card>
+
+        <app-summary-card
+          title="Total Teralokasi"
+          [value]="'Rp' + (totalAllocated | number:'1.0-0')"
+          subtitle="Nominal akumulasi seluruh kategori"
+          variant="mint"
+          [trend]="totalPercentage + '%'"
+          [isPositive]="true"
+        ></app-summary-card>
+
+        <app-summary-card
+          title="Sisa Belum Dialokasikan"
+          [value]="'Rp' + (unallocatedBudget | number:'1.0-0')"
+          subtitle="Total anggaran - total alokasi"
+          [variant]="unallocatedBudget === 0 ? 'mint' : 'peach'"
+          [trend]="unallocatedBudget === 0 ? 'Sempurna' : 'Perlu Alokasi'"
+          [isPositive]="unallocatedBudget === 0"
+        ></app-summary-card>
+
+        <app-summary-card
+          title="Total Rincian Sub-item"
+          [value]="'Rp' + (totalSubItemAmount | number:'1.0-0')"
+          subtitle="Akumulasi seluruh sub-item terdaftar"
+          variant="default"
+        ></app-summary-card>
+
+        <app-summary-card
+          title="Sisa Alokasi Belum Dirinci"
+          [value]="'Rp' + (remainingDetailBudget | number:'1.0-0')"
+          subtitle="Teralokasi - rincian sub-item"
+          [variant]="hasOverAllocatedCategory ? 'danger' : 'default'"
+          [trend]="hasOverAllocatedCategory ? 'Defisit' : 'Tersedia'"
+          [isPositive]="!hasOverAllocatedCategory"
+        ></app-summary-card>
+      </div>
+
+      <!-- Quick Distribution Summary Bar -->
+      <div class="distribution-card">
+        <div class="card-section-title">
+          <span>Distribusi Progres Alokasi</span>
+          <span class="pct-indicator" [class.text-success]="totalPercentage === 100" [class.text-danger]="totalPercentage > 100">
+            {{ totalPercentage }}% dari 100%
+          </span>
+        </div>
+        <div class="progress-bar-container">
+          <div
+            class="progress-bar-fill"
+            [style.width.%]="totalPercentage > 100 ? 100 : totalPercentage"
+            [class.fill-success]="totalPercentage === 100"
+            [class.fill-danger]="totalPercentage > 100"
+            [class.fill-warning]="totalPercentage < 100"
+          ></div>
+        </div>
+        <div class="distribution-legend">
+          <span class="legend-item"><span class="legend-dot dot-valid"></span> 100% Seimbang</span>
+          <span class="legend-item"><span class="legend-dot dot-warning"></span> &lt; 100% Belum Terdistribusi</span>
+          <span class="legend-item"><span class="legend-dot dot-danger"></span> &gt; 100% Melebihi Batas</span>
+        </div>
+      </div>
+
+      <!-- System Activities Feed -->
+      <div class="activities-panel" id="section-activities">
+        <div class="card-section-title">
+          <span>Status Sistem & Log Transaksi</span>
+          <span class="activity-badge">Live Feed</span>
+        </div>
+        <div class="activities-list">
+          <div class="activity-row">
+            <span class="activity-dot bg-lavender"></span>
+            <div class="activity-info">
+              <span class="activity-title">Validasi Persentase: {{ totalPercentage }}%</span>
+              <span class="activity-time">Real-time reactive update</span>
+            </div>
+          </div>
+          <div class="activity-row">
+            <span class="activity-dot" [ngClass]="isBudgetValid ? 'bg-mint' : 'bg-peach'"></span>
+            <div class="activity-info">
+              <span class="activity-title">Status Kelayakan Anggaran: {{ isBudgetValid ? 'VALID' : 'BELUM VALID' }}</span>
+              <span class="activity-time">Kepatuhan alokasi anggaran</span>
+            </div>
+          </div>
+          <div class="activity-row">
+            <span class="activity-dot bg-blue"></span>
+            <div class="activity-info">
+              <span class="activity-title">Penyimpanan In-Memory</span>
+              <span class="activity-time">Single Source of Truth Controller</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Empty State: Saat belum ada kategori bermakna yang diisi -->
+  <ng-template #emptyState>
+    <div class="snow-empty-state">
+      <div class="empty-icon-box">📊</div>
+      <h4 class="empty-title">Belum Ada Data Kategori Terisi</h4>
+      <p class="empty-desc">
+        Silakan isi nama dan persentase kategori anggaran pada formulir di sebelah kiri.
+        Sistem akan secara instan menghitung alokasi nominal dan memvisualisasikan ringkasan secara real-time.
+      </p>
+      <div class="empty-tips">
+        <span class="tip-badge">💡 Tips: Minimal 2 kategori & total persentase tepat 100%.</span>
+      </div>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,13 @@
+<div class="snow-alert" [ngClass]="'alert-' + status">
+  <div class="alert-icon-wrapper">
+    <ng-container [ngSwitch]="status">
+      <span *ngSwitchCase="'success'">🟢</span>
+      <span *ngSwitchCase="'warning'">🟡</span>
+      <span *ngSwitchCase="'error'">🔴</span>
+      <span *ngSwitchDefault>🔵</span>
+    </ng-container>
+  </div>
+  <div class="alert-content">
+    <span class="alert-message">{{ message }}</span>
+  </div>
+</div>
